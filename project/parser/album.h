@@ -1,6 +1,6 @@
 #ifndef ALBUM_H
 #define ALBUM_H
-
+#include <string>
 /*
  * List of keys that are set on an album's items.
 'added',
@@ -46,7 +46,7 @@ private:
    std::string albumartist;
    std::string albumartist_sort;
    std::string albumartist_credit;
-   std::string album;
+   std::string album_n;
    std::string genre;
    // is PaddedInt necessary?
    int year; //types.PaddedInt(4),
