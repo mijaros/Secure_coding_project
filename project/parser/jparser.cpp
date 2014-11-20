@@ -58,6 +58,7 @@ void JParser::endObjectState(char c)
         curr_top = stack.back();
 
         if (curr_top->type != DataTypes::OBJECT) {
+            delete key;
             throw std::exception();
         }
 
@@ -282,9 +283,209 @@ void JParser::endArrayState(char c)
 
 }
 
+void JParser::readingStringState(int c)
+{
+    if (stack.back()->type != DataTypes::STRING) {
+        throw std::exception();
+    }
 
+    if (c == '\\') {
+        status = ESCAPED;
+        return;
+    }
 
-void JParser::addChar(char c)
+    if (c == '"') {
+        status = END_STRING;
+        return;
+    }
+    JValue *j = stack.back();
+    j->str += c;
+    return;
+
+}
+
+void JParser::endStringState(int c)
+{
+    if (isspace(c)) {
+        return;
+    }
+
+    JValue *str = stack.back();
+    stack.pop_back();
+    if ( stack.empty()) {
+        if (c == -1) {
+            parsed = str;
+            status = ROOT_ELEMENT_FOUND;
+        } else {
+            delete str;
+            throw std::exception();
+        }
+    }
+    JValue *parent = stack.back();
+    switch (parent->type) {
+    case DataTypes::ARRAY:
+        switch (c) {
+        case ']':
+            parent->arr->array.push_back(str);
+            status = END_ARRAY;
+            return;
+        case ',':
+            parent->arr->array.push_back(str);
+            status = NEXT_ITEM;
+            return;
+        default:
+            throw std::exception();
+        }
+    case DataTypes::STRING:
+    {
+        JValue *key = parent;
+        stack.pop_back();
+        parent = stack.back();
+        if (parent->type != DataTypes::OBJECT) {
+            delete str;
+            delete key;
+            throw std::exception();
+        }
+
+        switch (c) {
+        case ',':
+            parent->obj->objDef[key->str] = str;
+            delete key;
+            status = NEXT_ITEM;
+            return;
+        case '}':
+            parent->obj->objDef[key->str] = str;
+            delete key;
+            status = END_OBJECT;
+            return;
+        default:
+            delete str;
+            delete key;
+            throw std::exception();
+        }
+    }
+    case DataTypes::OBJECT:
+    {
+        if (c != ':') {
+            delete str;
+            throw std::exception();
+        }
+
+        stack.push_back(str);
+        status = PAIR_DELIM;
+        return;
+
+    }
+    default:
+        delete str;
+        throw std::exception();
+    }
+}
+
+void JParser::pairDelimState(int c)
+{
+    if (stack.back()->type != DataTypes::STRING) {
+        throw std::exception();
+    }
+    if (isspace(c)) {
+        return;
+    }
+
+    switch (c) {
+    case '[':
+        stack.push_back(new JValue(DataTypes::ARRAY));
+        status = START_ARRAY;
+        break;
+    case '{':
+        stack.push_back(new JValue(DataTypes::OBJECT));
+        status = START_OBJECT;
+        break;
+    case '"':
+        stack.push_back(new JValue(DataTypes::STRING));
+        status = READING_STRING;
+        break;
+    default:
+        if (isdigit(c) || c == '-') {
+            JValue *val = new JValue(DataTypes::FLOAT);
+            val->str += c;
+            stack.push_back(val);
+        }
+    }
+}
+
+void JParser::readindNumberState(int c)
+{
+    if (stack.back()->type != DataTypes::FLOAT) {
+        throw std::exception();
+    }
+
+    if (isspace(c)){
+        status = NUMBER_READ;
+        return;
+    }
+    if (c == ',' || c == ']' || c == '}') {
+        status = NUMBER_READ;
+
+    }
+
+    if (isdigit(c) || c == '.'){
+        JValue *cur = stack.back();
+        cur->str += c;
+    }
+}
+
+void JParser::numberReadState(int c)
+{
+    if (isspace(c)) {
+        return;
+    }
+
+    JValue *s = stack.back();
+    stack.pop_back();
+    JValue *parent = stack.back();
+    s->f_val = atof(s->str.c_str());
+    s->str.clear();
+
+    switch (parent->type) {
+    case DataTypes::ARRAY:
+        if (parent->type != DataTypes::FLOAT){
+            delete s;
+            throw std::exception();
+        }
+
+        parent->arr->array.push_back(s);
+        return;
+    case DataTypes::STRING:
+    {
+        JValue *key = parent;
+        stack.pop_back();
+        parent = stack.back();
+
+        if (parent->type != DataTypes::OBJECT) {
+            delete key;
+            delete s;
+            throw std::exception();
+        }
+        parent->obj->objDef[key->str] = s;
+        delete key;
+        return;
+    }
+    default:
+        throw std::exception();
+    }
+}
+
+void JParser::escapedState(int c)
+{
+    if (stack.back()->type != DataTypes::STRING)
+        throw std::exception();
+
+    JValue *val = stack.back();
+    val->str += c;
+    status = READING_STRING;
+}
+
+void JParser::addChar(int c)
 {
     switch (status) {
     case NEW_DOCUMENT:
@@ -323,9 +524,22 @@ void JParser::addChar(char c)
         break;
         //case START_STRING:
     case READING_STRING:
+        readingStringState(c);
+        break;
     case END_STRING:
+        endStringState(c);
+        break;
     case PAIR_DELIM:
+        pairDelimState(c);
+        break;
     case READING_NUMBER:
+        readindNumberState(c);
+        break;
+    case NUMBER_READ:
+        numberReadState(c);
+        break;
+    case ESCAPED:
+
     case ROOT_ELEMENT_FOUND:
         if (isspace(c) || c == -1)
             return;

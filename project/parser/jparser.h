@@ -18,21 +18,27 @@ class JParser
        START_ARRAY,
        END_ARRAY,
        NEXT_ITEM,
-       START_STRING,
        READING_STRING,
        END_STRING,
        PAIR_DELIM,
        READING_NUMBER,
+       NUMBER_READ,
        ROOT_ELEMENT_FOUND,
-       BACKSPACED
+       ESCAPED
    };
 
-   void addChar(char c);
+   void addChar(int c);
    void newDocState(char c);
    void endObjectState(char c);
    void nextItemState(char c);
    void startArrayState(char c);
    void endArrayState(char c);
+   void readingStringState(int c);
+   void endStringState(int c);
+   void pairDelimState(int c);
+   void readindNumberState(int c);
+   void numberReadState(int c);
+   void escapedState(int c);
 
    void createObject(char c, char expected, DataTypes type, Statuses status);
 public:

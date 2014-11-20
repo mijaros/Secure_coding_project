@@ -14,8 +14,8 @@ public:
     /*
      * Forward declarations and public methods
      */
-    typedef std::vector<JValue>::iterator iterator;
-    typedef std::vector<JValue>::const_iterator const_iterator;
+    typedef std::vector<JValue*>::iterator iterator;
+    typedef std::vector<JValue*>::const_iterator const_iterator;
 
     JArray();
     ~JArray();
