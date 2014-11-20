@@ -7,8 +7,8 @@ class MediaManager
 {
 private:
     JValue base;
-    bool processAlbums(JObject albums);
-    bool processItems(JObject items);
+    bool processAlbums(JObject * albums);
+    bool processItems(JObject * items);
 public:
     MediaManager(JValue input);
     bool process();

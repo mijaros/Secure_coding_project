@@ -12,19 +12,19 @@ bool MediaManager::process()
     if (base.getDataType() != DataTypes::OBJECT)
         throw std::exception();
 
-    JObject * baseObject = base;
+    JObject *baseObject = base;
     JObject test();
-    //for(auto objectItems : baseObject)
+    for(auto objectItems : *baseObject)
     //for(auto& objectItems : test)
-    for(auto i = baseObject->begin(); i !=baseObject->end();i++)
+    //for(auto i = baseObject->begin(); i !=baseObject->end();i++)
     {
         //probably not required
-        if (objectItems.getDataType() != DataTypes::ARRAY)
-            throw std::exception();
+        //if (objectItems.getDataType() != DataTypes::ARRAY)
+        //    throw std::exception();
 
         if(objectItems.first.compare("albums") == 0)
         {
-            JArray * arr = objectItems.second;
+            JArray * arr = *objectItems.second;
             for(auto arrItems : *arr)
             {
                 processAlbums(arrItems);
@@ -32,7 +32,7 @@ bool MediaManager::process()
         }
         else if (objectItems.first.compare("items") == 0)
         {
-            JArray * arr = objectItems.second;
+            JArray * arr = *objectItems.second;
             for(auto arrItems : *arr)
             {
                 processItems(arrItems);
@@ -46,18 +46,18 @@ bool MediaManager::process()
     return true;
 }
 
-bool MediaManager::processAlbums(JObject albums)
+bool MediaManager::processAlbums(JObject * albums)
 {
-    for(auto album : albums)
+    for(auto album : *albums)
     {
 
     }
     return true;
 }
 
-bool MediaManager::processItems(JObject items)
+bool MediaManager::processItems(JObject * items)
 {
-    for(auto item : items)
+    for(auto item : *items)
     {
 
     }
