@@ -1,18 +1,11 @@
 #ifndef MEDIATYPES_H
 #define MEDIATYPES_H
 
-struct floatNull
-{
-    float num;
-    bool isNull;
-};
 enum MediaDataTypes
 {
     Integer,
     String,
-    Float,
-    FloatNull,
-    Bool
+    Float
 };
 
 #endif // MEDIATYPES_H

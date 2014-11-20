@@ -27,7 +27,7 @@ std::map<std::string, MediaDataTypes> item::definitions = {
     {"lyrics",String},
     {"comments",String},
     {"bpm",Integer},
-    {"comp",Bool},
+    {"comp",String},
     {"mb_trackid",String},
     {"mb_albumid",String},
     {"mb_artistid",String},
@@ -47,10 +47,10 @@ std::map<std::string, MediaDataTypes> item::definitions = {
     {"albumdisambig",String},
     {"disctitle",String},
     {"encoder",String},
-    {"rg_track_gain",FloatNull},
-    {"rg_track_peak",FloatNull},
-    {"rg_album_gain",FloatNull},
-    {"rg_album_peak",FloatNull},
+    {"rg_track_gain",Float},
+    {"rg_track_peak",Float},
+    {"rg_album_gain",Float},
+    {"rg_album_peak",Float},
     {"original_year",Integer},
     {"original_month",Integer},
     {"original_day",Integer},
@@ -69,3 +69,16 @@ item::item()
 {
 }
 
+void item::addint(std::string s, int i)
+{
+   this->integers.insert(std::pair<std::string,int> (s,i));
+}
+
+void item::addstr(std::string s,std::string str)
+{
+   this->strings.insert(std::pair<std::string,std::string> (s,str));
+}
+void item::addfloat(std::string s,float f)
+{
+   this->floats.insert(std::pair<std::string,float> (s,f));
+}

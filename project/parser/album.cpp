@@ -15,7 +15,7 @@ std::map<std::string, MediaDataTypes> album::definitions = {
     {"day",Integer},
     {"tracktotal",Integer},
     {"disctotal",Integer},
-    {"comp",Bool},
+    {"comp",String},
     {"mb_albumid",String},
     {"mb_albumartistid",String},
     {"albumtype",String},
@@ -28,8 +28,8 @@ std::map<std::string, MediaDataTypes> album::definitions = {
     {"country",String},
     {"albumstatus",String},
     {"albumdisambig",String},
-    {"rg_album_gain",FloatNull},
-    {"rg_album_peak",FloatNull},
+    {"rg_album_gain",Float},
+    {"rg_album_peak",Float},
     {"original_year",Integer},
     {"original_month",Integer},
     {"original_day",Integer}
@@ -37,4 +37,18 @@ std::map<std::string, MediaDataTypes> album::definitions = {
 
 album::album()
 {
+}
+
+void album::addint(std::string s, int i)
+{
+   this->integers.insert(std::pair<std::string,int> (s,i));
+}
+
+void album::addstr(std::string s,std::string str)
+{
+   this->strings.insert(std::pair<std::string,std::string> (s,str));
+}
+void album::addfloat(std::string s,float f)
+{
+   this->floats.insert(std::pair<std::string,float> (s,f));
 }
