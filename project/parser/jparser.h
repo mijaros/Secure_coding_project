@@ -6,6 +6,7 @@
 
 class JParser;
 
+
 std::istream& operator>>(std::istream& in, JParser& where);
 
 class JParser
@@ -25,15 +26,14 @@ class JParser
        NUMBER_READ,
        ROOT_ELEMENT_FOUND,
        ESCAPED,
-       SPECIAL_READING
    };
 
    void addChar(int c);
-   void newDocState(char c);
-   void endObjectState(char c);
-   void nextItemState(char c);
-   void startArrayState(char c);
-   void endArrayState(char c);
+   void newDocState(int c);
+   void endObjectState(int c);
+   void nextItemState(int c);
+   void startArrayState(int c);
+   void endArrayState(int c);
    void readingStringState(int c);
    void endStringState(int c);
    void pairDelimState(int c);
@@ -42,6 +42,8 @@ class JParser
    void escapedState(int c);
 
    void createObject(char c, char expected, DataTypes type, Statuses status);
+
+   void destroyStack();
 public:
     JParser();
 
@@ -50,7 +52,10 @@ public:
 
     JValue* getParsed();
 
-    bool parse();
+    bool isParsed() {
+        return parsed != 0;
+    }
+
 private:
 
    std::vector<JValue*> stack;

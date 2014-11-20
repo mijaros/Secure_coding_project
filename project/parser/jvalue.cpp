@@ -63,8 +63,5 @@ JValue::operator JObject*  () {
     return obj;
 }
 
-JValue::operator bool() {
-    if (type != DataTypes::BOOL)
-        throw std::exception();
-    return boolean;
-}
+
+

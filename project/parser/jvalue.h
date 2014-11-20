@@ -13,9 +13,7 @@ enum DataTypes {
     OBJECT,
     INT,
     FLOAT,
-    STRING,
-    BOOL,
-    NIL
+    STRING
 };
 class JArray;
 #include "jarray.h"
@@ -47,7 +45,7 @@ public:
 
     operator float();
 
-    operator bool();
+
 
     operator JArray* ();
 

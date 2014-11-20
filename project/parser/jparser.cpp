@@ -2,6 +2,9 @@
 #include <cctype>
 #include <ios>
 #include <iostream>
+#include <map>
+
+
 JParser::JParser():
     stack(), parsed(0), currentVal(),
     status(Statuses::NEW_DOCUMENT)
@@ -17,13 +20,23 @@ std::istream& operator>> (std::istream& in, JParser& where)
             where.addChar(c);
         }
         where.addChar(-1);
+
     } catch (std::exception &ex) {
-        std::cerr << "Error" <<std::endl;
+        where.destroyStack();
+        throw ex;
     }
+
     return in;
 }
 
-void JParser::endObjectState(char c)
+void JParser::destroyStack()
+{
+    for(JValue *j : stack) {
+        delete j;
+    }
+}
+
+void JParser::endObjectState(int c)
 {
     JValue *top = stack.back();
     stack.pop_back();
@@ -82,7 +95,7 @@ void JParser::endObjectState(char c)
     }
 }
 
-void JParser::newDocState(char c)
+void JParser::newDocState(int c)
 {
     if (!stack.empty()){
         throw std::exception();
@@ -116,7 +129,7 @@ void JParser::createObject(char c, char expected, DataTypes type, Statuses statu
     this->status = status;
 }
 
-void JParser::nextItemState(char c)
+void JParser::nextItemState(int c)
 {
     if (isspace(c))
         return;
@@ -141,7 +154,7 @@ void JParser::nextItemState(char c)
             break;
         case DataTypes::FLOAT:
         {
-            if (!isdigit(c) && c == '-')
+            if (!isdigit(c) && c != '-')
                 throw std::exception();
             JValue *add = new JValue(DataTypes::FLOAT);
             add->str += c;
@@ -157,7 +170,7 @@ void JParser::nextItemState(char c)
     }
 }
 
-void JParser::startArrayState(char c)
+void JParser::startArrayState(int c)
 {
     if (stack.back()->type != DataTypes::ARRAY) {
         throw std::exception();
@@ -212,7 +225,7 @@ void JParser::startArrayState(char c)
     }
 }
 
-void JParser::endArrayState(char c)
+void JParser::endArrayState(int c)
 {
     if (stack.back()->type != DataTypes::ARRAY)
         throw std::exception();
@@ -449,7 +462,7 @@ void JParser::numberReadState(int c)
 
     switch (parent->type) {
     case DataTypes::ARRAY:
-        if (parent->type != DataTypes::FLOAT){
+        if (parent->arr->type != DataTypes::FLOAT){
             delete s;
             throw std::exception();
         }
