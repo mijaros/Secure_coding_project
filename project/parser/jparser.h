@@ -10,7 +10,7 @@ std::istream& operator>>(std::istream& in, JParser& where);
 
 class JParser
 {
-    friend std::istream& operator>>(std::istream&, JParser& where);
+   friend inline std::istream& operator>> (std::istream&, JParser&);
    enum Statuses {
        NEW_DOCUMENT,
        START_OBJECT,
@@ -29,9 +29,12 @@ class JParser
    void addChar(char c);
    void newDocState(char c);
    void endObjectState(char c);
-
+   void createObject(char c, char expected, DataTypes type, Statuses status);
 public:
     JParser();
+
+    ~JParser()
+    { }
 
     JValue* getParsed();
 
