@@ -3,13 +3,18 @@
 #include <iterator>
 #include <map>
 
+class JArray;
+class JValue;
+
+//enum JValue::DataTypes;
+
 #include "jvalue.h"
+#include "jparser.h"
 /**
  * @brief The JsonObject class
  */
 
-class JArray;
-class JValue;
+
 
 class JObject
 {
@@ -28,7 +33,7 @@ public:
     JValue& operator[](std::string);
     const JValue& operator[] (std::string) const;
 private:
-
+    friend class JParser;
 public:
 
 //    class iterator: public std::iterator<std::forward_iterator_tag,

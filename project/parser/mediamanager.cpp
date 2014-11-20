@@ -9,7 +9,7 @@ MediaManager::MediaManager(JValue input) : base(input)
 bool MediaManager::process()
 {
     //probably not required
-    if (base.getDataType() != JValue::DataTypes::OBJECT)
+    if (base.getDataType() != DataTypes::OBJECT)
         throw std::exception();
 
     JObject * baseObject = base;
@@ -19,7 +19,7 @@ bool MediaManager::process()
     for(auto i = baseObject->begin(); i !=baseObject->end();i++)
     {
         //probably not required
-        if (objectItems.getDataType() != JValue::DataTypes::ARRAY)
+        if (objectItems.getDataType() != DataTypes::ARRAY)
             throw std::exception();
 
         if(objectItems.first.compare("albums") == 0)

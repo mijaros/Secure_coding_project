@@ -13,7 +13,7 @@ JValue::JValue(DataTypes d):
 
 }
 
-JValue::DataTypes JValue::getDataType() const
+DataTypes JValue::getDataType() const
 {
     return this->type;
 }

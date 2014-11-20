@@ -6,6 +6,7 @@
 class JValue;
 #include "jvalue.h"
 
+#include "jparser.h"
 
 class JArray
 {
@@ -24,6 +25,7 @@ public:
     const JValue* operator[] (int) const;
 
 private:
+    friend class JParser;
     /*
      * Private methods and other stuff
      */
@@ -47,6 +49,7 @@ private:
      */
 
     std::vector<JValue*> array;
+    DataTypes type;
 
 };
 

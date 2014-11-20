@@ -1,27 +1,28 @@
 #ifndef JVALUE_H
 #define JVALUE_H
 
-class JArray;
-#include "jarray.h"
-#include "jobject.h"
-#include "jparser.h"
+
 
 #include <string>
 #include <exception>
 
 class JObject;
 
-
+enum DataTypes {
+    ARRAY,
+    OBJECT,
+    INT,
+    FLOAT,
+    STRING
+};
+class JArray;
+#include "jarray.h"
+#include "jobject.h"
+#include "jparser.h"
 class JValue
 {
 public:
-    enum DataTypes {
-        ARRAY,
-        OBJECT,
-        INT,
-        FLOAT,
-        STRING
-    };
+
 
 
 
