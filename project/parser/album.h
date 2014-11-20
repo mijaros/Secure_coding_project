@@ -40,7 +40,7 @@
 class album
 {
 private:
-    std::map<std::string,DataTypes> definitions;
+    static std::map<std::string,DataTypes> definitions;
     std::map<std::string,int> integers;
     std::map<std::string,std::string> strings;
     std::map<std::string,float> floats;
