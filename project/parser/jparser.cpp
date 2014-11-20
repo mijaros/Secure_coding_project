@@ -110,17 +110,186 @@ void JParser::createObject(char c, char expected, DataTypes type, Statuses statu
 {
     if (c != expected)
         throw std::exception();
-     stack.push_back(new JValue(type));
-     status = READING_STRING;
+    stack.push_back(new JValue(type));
+    this->status = status;
 }
+
+void JParser::nextItemState(char c)
+{
+    if (isspace(c))
+        return;
+    switch (stack.back()->type) {
+    case DataTypes::OBJECT:
+        if (c != '"')
+            throw std::exception();
+        stack.push_back(new JValue(DataTypes::STRING));
+        break;
+    case DataTypes::ARRAY:
+    {
+        JValue *array = stack.back();
+        switch (array->arr->type) {
+        case DataTypes::ARRAY:
+            createObject(c, '[', DataTypes::ARRAY, START_ARRAY);
+            break;
+        case DataTypes::OBJECT:
+            createObject(c, '{', DataTypes::OBJECT, START_OBJECT);
+            break;
+        case DataTypes::STRING:
+            createObject(c, '"', DataTypes::STRING, READING_STRING);
+            break;
+        case DataTypes::FLOAT:
+        {
+            if (!isdigit(c) && c == '-')
+                throw std::exception();
+            JValue *add = new JValue(DataTypes::FLOAT);
+            add->str += c;
+            stack.push_back(add);
+        }
+        default:
+            break;
+        }
+
+    }
+    default:
+        throw std::exception();
+    }
+}
+
+void JParser::startArrayState(char c)
+{
+    if (stack.back()->type != DataTypes::ARRAY) {
+        throw std::exception();
+    }
+
+    if (isspace(c))
+        return;
+    JValue *v = stack.back();
+
+    if (!v->arr->array.empty()) {
+        throw std::exception();
+    }
+    DataTypes types;
+    switch (c) {
+    case '{':
+        types = DataTypes::OBJECT;
+        break;
+    case '[':
+        types = DataTypes::ARRAY;
+        break;
+    case '"':
+        types = DataTypes::STRING;
+        break;
+    default:
+        if (isdigit(c) || c == '-') {
+            types = DataTypes::FLOAT;
+        } else {
+            throw std::exception();
+        }
+    }
+    v->arr->type = types;
+    JValue *newObj = new JValue(types);
+    if (types == DataTypes::FLOAT) {
+        newObj->str+=c;
+    }
+    stack.push_back(newObj);
+    switch (types) {
+    case DataTypes::ARRAY:
+        status = START_ARRAY;
+        break;
+    case DataTypes::OBJECT:
+        status = START_OBJECT;
+        break;
+    case DataTypes::STRING:
+        status = READING_STRING;
+        break;
+    case DataTypes::FLOAT:
+        status = READING_NUMBER;
+        break;
+    default:
+        throw std::exception();
+    }
+}
+
+void JParser::endArrayState(char c)
+{
+    if (stack.back()->type != DataTypes::ARRAY)
+        throw std::exception();
+
+    JValue *v = stack.back();
+    stack.pop_back();
+
+
+
+    if (stack.empty() && (c == -1 || isspace(c))) {
+        status = ROOT_ELEMENT_FOUND;
+        parsed = v;
+        return;
+    }
+    JValue *cur_top = stack.back();
+
+    if (isspace(c)) {
+        stack.push_back(v);
+        return;
+    }
+
+    switch (cur_top->type) {
+    case DataTypes::ARRAY:
+    {
+        if (cur_top->arr->type != v->type)
+            throw std::exception();
+
+        switch (c) {
+        case ',':
+            status = NEXT_ITEM;
+            break;
+        case ']':
+            status = END_ARRAY;
+            break;
+        default:
+            delete v;
+            throw std::exception();
+        }
+        cur_top->arr->array.push_back(v);
+    }
+    case DataTypes::STRING:
+    {
+        JValue *key = stack.back();
+        stack.pop_back();
+
+        if (stack.back()->type != DataTypes::OBJECT) {
+
+            delete key;
+            delete v;
+            throw std::exception();
+        }
+        JValue *obj = stack.back();
+        obj->obj->objDef[key->str] = v;
+        delete key;
+        switch (c) {
+        case ',':
+            status = NEXT_ITEM;
+            break;
+        case '}':
+            status = END_OBJECT;
+            break;
+        default:
+            throw std::exception();
+        }
+    }
+    default:
+        throw std::exception();
+    }
+
+}
+
+
 
 void JParser::addChar(char c)
 {
     switch (status) {
     case NEW_DOCUMENT:
-    {
         newDocState(c);
-    }
+        break;
     case START_OBJECT:
     {
         if (stack.back()->type != DataTypes::OBJECT) {
@@ -141,175 +310,18 @@ void JParser::addChar(char c)
         return;
     }
     case END_OBJECT:
-    {
         endObjectState(c);
-    }
+        break;
     case START_ARRAY:
-    {
-        if (stack.back()->type != DataTypes::ARRAY) {
-            throw std::exception();
-        }
-
-        if (isspace(c))
-            return;
-        JValue *v = stack.back();
-
-        if (!v->arr->array.empty()) {
-            throw std::exception();
-        }
-        DataTypes types;
-        switch (c) {
-        case '{':
-            types = DataTypes::OBJECT;
-            break;
-        case '[':
-            types = DataTypes::ARRAY;
-            break;
-        case '"':
-            types = DataTypes::STRING;
-            break;
-        default:
-            if (isdigit(c) || c == '-') {
-                types = DataTypes::FLOAT;
-            } else {
-                throw std::exception();
-            }
-        }
-        v->arr->type = types;
-        JValue *newObj = new JValue(types);
-        if (types == DataTypes::FLOAT) {
-            newObj->str+=c;
-        }
-        stack.push_back(newObj);
-        switch (types) {
-        case DataTypes::ARRAY:
-            status = START_ARRAY;
-            break;
-        case DataTypes::OBJECT:
-            status = START_OBJECT;
-            break;
-        case DataTypes::STRING:
-            status = READING_STRING;
-            break;
-        case DataTypes::FLOAT:
-            status = READING_NUMBER;
-            break;
-        default:
-            throw std::exception();
-        }
-    }
+        startArrayState(c);
+        break;
     case END_ARRAY:
-    {
-        if (stack.back()->type != DataTypes::ARRAY)
-            throw std::exception();
-
-        JValue *v = stack.back();
-        stack.pop_back();
-
-
-
-        if (stack.empty() && (c == -1 || isspace(c))) {
-            status = ROOT_ELEMENT_FOUND;
-            parsed = v;
-            return;
-        }
-        JValue *cur_top = stack.back();
-
-        if (isspace(c)) {
-            stack.push_back(v);
-            return;
-        }
-
-        switch (cur_top->type) {
-        case DataTypes::ARRAY:
-        {
-            if (cur_top->arr->type != v->type)
-                throw std::exception();
-
-            switch (c) {
-            case ',':
-                status = NEXT_ITEM;
-                break;
-            case ']':
-                status = END_ARRAY;
-                break;
-            default:
-                delete v;
-                throw std::exception();
-            }
-            cur_top->arr->array.push_back(v);
-        }
-        case DataTypes::STRING:
-        {
-            JValue *key = stack.back();
-            stack.pop_back();
-
-            if (stack.back()->type != DataTypes::OBJECT) {
-
-                delete key;
-                delete v;
-                throw std::exception();
-            }
-            JValue *obj = stack.back();
-            obj->obj->objDef[key->str] = v;
-            delete key;
-            switch (c) {
-            case ',':
-                status = NEXT_ITEM;
-                break;
-            case '}':
-                status = END_OBJECT;
-                break;
-            default:
-                throw std::exception();
-            }
-        }
-        default:
-            throw std::exception();
-        }
-
-    }
+        endArrayState(c);
+        break;
     case NEXT_ITEM:
-    {
-        if (isspace(c))
-            return;
-        switch (stack.back()->type) {
-        case DataTypes::OBJECT:
-            if (c != '"')
-                throw std::exception();
-            stack.push_back(new JValue(DataTypes::STRING));
-            break;
-        case DataTypes::ARRAY:
-        {
-            JValue *array = stack.back();
-            switch (array->arr->type) {
-            case DataTypes::ARRAY:
-                createObject(c, '[', DataTypes::ARRAY, START_ARRAY);
-                break;
-            case DataTypes::OBJECT:
-                createObject(c, '{', DataTypes::OBJECT, START_OBJECT);
-                break;
-            case DataTypes::STRING:
-                createObject(c, '"', DataTypes::STRING, READING_STRING);
-                break;
-            case DataTypes::FLOAT:
-            {
-                if (!isdigit(c) && c == '-')
-                    throw std::exception();
-                JValue *add = new JValue(DataTypes::FLOAT);
-                add->str += c;
-                stack.push_back(add);
-            }
-            default:
-                break;
-            }
-
-        }
-        default:
-            throw std::exception();
-        }
-    }
-    //case START_STRING:
+        nextItemState(c);
+        break;
+        //case START_STRING:
     case READING_STRING:
     case END_STRING:
     case PAIR_DELIM:
