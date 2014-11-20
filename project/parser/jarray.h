@@ -1,31 +1,38 @@
 #ifndef JARRAY_H
 #define JARRAY_H
 #include <iterator>
+#include <vector>
 
+class JValue;
 #include "jvalue.h"
+
+
 class JArray
 {
 public:
-    class iterator;
-    class const_iterator;
+    /*
+     * Forward declarations and public methods
+     */
+    typedef std::vector<JValue>::iterator iterator;
+    typedef std::vector<JValue>::const_iterator const_iterator;
 
     JArray();
+    ~JArray();
 
-    JValue& operator[] (int);
+    JValue* operator[] (int);
 
-    const JValue& operator[] (int) const;
+    const JValue* operator[] (int) const;
 
 private:
-
+    /*
+     * Private methods and other stuff
+     */
 public:
-    class iterator: public std::iterator<std::forward_iterator_tag, JValue>
-    {
 
-    };
-    class const_iterator: public std::iterator<std::forward_iterator_tag, JValue>
-    {
+    /*
+     * Iterators section
+     */
 
-    };
 
     iterator begin();
 
@@ -34,6 +41,13 @@ public:
     iterator end();
 
     const_iterator end() const;
+private:
+    /*
+     * The attributes section
+     */
+
+    std::vector<JValue*> array;
+
 };
 
 #endif // JARRAY_H

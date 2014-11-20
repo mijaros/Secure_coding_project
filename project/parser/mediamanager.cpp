@@ -25,7 +25,7 @@ bool MediaManager::process()
         if(objectItems.first.compare("albums") == 0)
         {
             JArray * arr = objectItems.second;
-            for(auto arrItems : arr)
+            for(auto arrItems : *arr)
             {
                 processAlbums(arrItems);
             }
@@ -33,7 +33,7 @@ bool MediaManager::process()
         else if (objectItems.first.compare("items") == 0)
         {
             JArray * arr = objectItems.second;
-            for(auto arrItems : arr)
+            for(auto arrItems : *arr)
             {
                 processItems(arrItems);
             }

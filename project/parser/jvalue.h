@@ -1,10 +1,17 @@
 #ifndef JVALUE_H
 #define JVALUE_H
-#include "jsonobject.h"
+
+class JArray;
 #include "jarray.h"
+#include "jobject.h"
+#include "jparser.h"
 
 #include <string>
 #include <exception>
+
+class JObject;
+
+
 class JValue
 {
 public:
@@ -16,12 +23,12 @@ public:
         STRING
     };
 
-    class iterator;
-    class const_iterator;
+
 
 private:
-    JArray arr;
-    JObject obj;
+    friend class JParser;
+    JObject *obj;
+    JArray *arr;
     std::string str;
     int i_val;
     float f_val;
@@ -29,44 +36,22 @@ private:
     DataTypes type;
 
 public:
-    JValue();
 
-    operator std::string () {
-        if (type != DataTypes::STRING){
-            throw std::exception();
-        }
-        return str;
-    }
+    operator std::string();
 
-    operator int() {
-        if (type != DataTypes::INT)
-            throw std::exception();
-        return i_val;
-    }
+    operator int();
 
-    operator float() {
-        if (type != DataTypes::FLOAT)
-            throw std::exception();
-        return f_val;
-    }
+    operator float();
 
-    operator JArray () {
-        if (type != DataTypes::ARRAY)
-            throw std::exception();
-        return arr;
-    }
+    operator JArray *();
 
-    operator JObject  () {
-        if (type != DataTypes::OBJECT)
-            throw std::exception();
-        return obj;
-    }
+    operator JObject *();
 
     DataTypes getDataType() const;
 
-    iterator &begin();
+private:
+    JValue(DataTypes d);
 
-    const_iterator &begin() const;
 };
 
 #endif // JVALUE_H
