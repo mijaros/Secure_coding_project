@@ -13,7 +13,9 @@ enum DataTypes {
     OBJECT,
     INT,
     FLOAT,
-    STRING
+    STRING,
+    BOOL,
+    NIL
 };
 class JArray;
 #include "jarray.h"
@@ -33,6 +35,7 @@ private:
     std::string str;
     int i_val;
     float f_val;
+    bool boolean;
 
     DataTypes type;
 
@@ -44,9 +47,11 @@ public:
 
     operator float();
 
-    operator JArray *();
+    operator bool();
 
-    operator JObject *();
+    operator JArray* ();
+
+    operator JObject* ();
 
     DataTypes getDataType() const;
 
