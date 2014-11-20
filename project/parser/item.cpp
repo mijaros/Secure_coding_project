@@ -2,7 +2,7 @@
 #include <map>
 #include "mediaTypes.h"
 
-std::map<std::string, DataTypes> item::definitions = {
+std::map<std::string, MediaDataTypes> item::definitions = {
     {"id",Integer},
     {"path",String},
     {"album_id",Integer},

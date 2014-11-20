@@ -6,11 +6,11 @@
 class MediaManager
 {
 private:
-    JValue base;
+    JValue * base;
     bool processAlbums(JObject * albums);
     bool processItems(JObject * items);
 public:
-    MediaManager(JValue input);
+    MediaManager(JValue * input);
     bool process();
 };
 

@@ -1,7 +1,7 @@
 #include "album.h"
 #include "mediaTypes.h"
 
-std::map<std::string, DataTypes> album::definitions = {
+std::map<std::string, MediaDataTypes> album::definitions = {
     {"id",Integer},
     {"artpath",String},
     {"added",Float},

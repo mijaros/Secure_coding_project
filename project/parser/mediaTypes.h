@@ -6,7 +6,7 @@ struct floatNull
     float num;
     bool isNull;
 };
-enum DataTypes
+enum MediaDataTypes
 {
     Integer,
     String,
