@@ -24,7 +24,8 @@ class JParser
        READING_NUMBER,
        NUMBER_READ,
        ROOT_ELEMENT_FOUND,
-       ESCAPED
+       ESCAPED,
+       SPECIAL_READING
    };
 
    void addChar(int c);

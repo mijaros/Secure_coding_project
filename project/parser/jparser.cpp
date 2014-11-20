@@ -16,6 +16,7 @@ std::istream& operator>> (std::istream& in, JParser& where)
             in >> std::noskipws >> c;
             where.addChar(c);
         }
+        where.addChar(-1);
     } catch (std::exception &ex) {
         std::cerr << "Error" <<std::endl;
     }
@@ -539,11 +540,17 @@ void JParser::addChar(int c)
         numberReadState(c);
         break;
     case ESCAPED:
-
+        escapedState(c);
+        break;
     case ROOT_ELEMENT_FOUND:
         if (isspace(c) || c == -1)
             return;
         throw std::exception();
 
     }
+}
+
+JValue* JParser::getParsed()
+{
+    return this->parsed;
 }
