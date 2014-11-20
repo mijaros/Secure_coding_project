@@ -10,8 +10,8 @@ class MediaManager
 {
 private:
     JValue * base;
-    std::list<item> items;
-    std::list<album> albums;
+    std::list<item*> items;
+    std::list<album*> albums;
     bool processAlbums(JObject * albums);
     bool processItems(JObject * items);
 public:

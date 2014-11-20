@@ -51,22 +51,28 @@ bool MediaManager::processAlbums(JObject * albums)
 {
     for(auto al : *albums)
     {
-        album i;
-        if (i.definitions.count(al.first) != 0)
+        album * i = new album();
+        if (i->definitions.count(al.first) != 0)
         {
-            switch (i.definitions[al.first]) {
+            switch (i->definitions[al.first]) {
             case (MediaDataTypes::Integer):
+            {
                 int tmpi = *al.second;
-                i.addint(al.first, tmpi);
+                i->addint(al.first, tmpi);
                 break;
+            }
             case (MediaDataTypes::String):
+            {
                 std::string tmps = *al.second;
-                i.addstr(al.first, tmps);
+                i->addstr(al.first, tmps);
                 break;
+            }
             case MediaDataTypes::Float:
+            {
                 float tmp = *al.second;
-                i.addfloat(al.first, tmp);
+                i->addfloat(al.first, tmp);
                 break;
+            }
             }
         }
         this->albums.push_back(i);
@@ -76,24 +82,30 @@ bool MediaManager::processAlbums(JObject * albums)
 
 bool MediaManager::processItems(JObject * items)
 {
-    for(auto item : *items)
+    for(auto it : *items)
     {
-        item i;
-        if (i.definitions.count(album.first) != 0)
+        item * i = new item();
+        if (i->definitions.count(it.first) != 0)
         {
-            switch (i.definitions[album.first]) {
+            switch (i->definitions[it.first]) {
             case MediaDataTypes::Integer:
-                int tmpi = *album.second;
-                item.addint(album.first, tmpi);
+            {
+                int tmpi = *it.second;
+                i->addint(it.first, tmpi);
                 break;
+            }
             case MediaDataTypes::String:
-                std::string tmps = *album.second;
-                item.addstr(album.first, tmps);
+            {
+                std::string tmps = *it.second;
+                i->addstr(it.first, tmps);
                 break;
+            }
             case MediaDataTypes::Float:
-                float tmp = *album.second;
-                item.addfloat(album.first, tmp);
+            {
+                float tmp = *it.second;
+                i->addfloat(it.first, tmp);
                 break;
+            }
             }
         }
         this->items.push_back(i);
