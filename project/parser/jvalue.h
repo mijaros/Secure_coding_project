@@ -26,7 +26,7 @@ class JValue
 public:
 
 
-
+    ~JValue();
 
 private:
     friend class JParser;

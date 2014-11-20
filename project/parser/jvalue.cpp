@@ -15,6 +15,18 @@ JValue::JValue(DataTypes d):
 
 }
 
+JValue::~JValue()
+{
+    switch (type) {
+    case DataTypes::OBJECT:
+        delete obj;
+        break;
+    case DataTypes::ARRAY:
+        delete arr;
+        break;
+    }
+}
+
 DataTypes JValue::getDataType() const
 {
     return this->type;

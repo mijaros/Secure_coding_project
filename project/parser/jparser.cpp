@@ -13,7 +13,7 @@ std::istream& operator>> (std::istream& in, JParser& where)
     try {
         while (in.good()) {
             char c;
-            in >> c;
+            in >> std::noskipws >> c;
             where.addChar(c);
         }
     } catch (std::exception &ex) {
