@@ -9,6 +9,8 @@ JValue::JValue(DataTypes d):
         break;
     case ARRAY:
         arr = new JArray;
+    default:
+        break;
     }
 
 }

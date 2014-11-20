@@ -1,9 +1,25 @@
 #include "jparser.h"
 #include <cctype>
+#include <ios>
+#include <iostream>
 JParser::JParser():
     stack(), parsed(0), currentVal(),
     status(Statuses::NEW_DOCUMENT)
 {
+}
+
+std::istream& operator>> (std::istream& in, JParser& where)
+{
+    try {
+        while (in.good()) {
+            char c;
+            in >> c;
+            where.addChar(c);
+        }
+    } catch (std::exception &ex) {
+        std::cerr << "Error" <<std::endl;
+    }
+    return in;
 }
 
 void JParser::endObjectState(char c)
@@ -90,6 +106,14 @@ void JParser::newDocState(char c)
     }
 }
 
+void JParser::createObject(char c, char expected, DataTypes type, Statuses status)
+{
+    if (c != expected)
+        throw std::exception();
+     stack.push_back(new JValue(type));
+     status = READING_STRING;
+}
+
 void JParser::addChar(char c)
 {
     switch (status) {
@@ -145,7 +169,7 @@ void JParser::addChar(char c)
             types = DataTypes::STRING;
             break;
         default:
-            if (isalnum(c) || c == '-') {
+            if (isdigit(c) || c == '-') {
                 types = DataTypes::FLOAT;
             } else {
                 throw std::exception();
@@ -153,8 +177,26 @@ void JParser::addChar(char c)
         }
         v->arr->type = types;
         JValue *newObj = new JValue(types);
+        if (types == DataTypes::FLOAT) {
+            newObj->str+=c;
+        }
         stack.push_back(newObj);
-        status = START_OBJECT;
+        switch (types) {
+        case DataTypes::ARRAY:
+            status = START_ARRAY;
+            break;
+        case DataTypes::OBJECT:
+            status = START_OBJECT;
+            break;
+        case DataTypes::STRING:
+            status = READING_STRING;
+            break;
+        case DataTypes::FLOAT:
+            status = READING_NUMBER;
+            break;
+        default:
+            throw std::exception();
+        }
     }
     case END_ARRAY:
     {
@@ -204,7 +246,8 @@ void JParser::addChar(char c)
 
             if (stack.back()->type != DataTypes::OBJECT) {
 
-                delete key, v;
+                delete key;
+                delete v;
                 throw std::exception();
             }
             JValue *obj = stack.back();
@@ -221,6 +264,8 @@ void JParser::addChar(char c)
                 throw std::exception();
             }
         }
+        default:
+            throw std::exception();
         }
 
     }
@@ -239,18 +284,40 @@ void JParser::addChar(char c)
             JValue *array = stack.back();
             switch (array->arr->type) {
             case DataTypes::ARRAY:
+                createObject(c, '[', DataTypes::ARRAY, START_ARRAY);
+                break;
+            case DataTypes::OBJECT:
+                createObject(c, '{', DataTypes::OBJECT, START_OBJECT);
+                break;
+            case DataTypes::STRING:
+                createObject(c, '"', DataTypes::STRING, READING_STRING);
+                break;
+            case DataTypes::FLOAT:
+            {
+                if (!isdigit(c) && c == '-')
+                    throw std::exception();
+                JValue *add = new JValue(DataTypes::FLOAT);
+                add->str += c;
+                stack.push_back(add);
+            }
+            default:
                 break;
             }
+
         }
         default:
             throw std::exception();
         }
     }
-    case START_STRING:
+    //case START_STRING:
     case READING_STRING:
     case END_STRING:
     case PAIR_DELIM:
     case READING_NUMBER:
-        break;
+    case ROOT_ELEMENT_FOUND:
+        if (isspace(c) || c == -1)
+            return;
+        throw std::exception();
+
     }
 }
