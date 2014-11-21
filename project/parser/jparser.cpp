@@ -17,7 +17,8 @@ std::istream& operator>> (std::istream& in, JParser& where)
         while (in.good()) {
             char c;
             in >> std::noskipws >> c;
-            where.addChar(c);
+            if (in.good())
+                where.addChar(c);
         }
         where.addChar(-1);
 
@@ -82,10 +83,10 @@ void JParser::endObjectState(int c)
         switch (c) {
         case ',':
             status = NEXT_ITEM;
-            break;
+            return;
         case '}':
             status = END_OBJECT;
-            break;
+            return;
         default:
             throw std::exception();
         }
@@ -107,13 +108,13 @@ void JParser::newDocState(int c)
 
     if (c == '{') {
         JValue *v = new JValue(DataTypes::OBJECT);
-        v->obj = new JObject;
+
         stack.push_back(v);
         status = START_OBJECT;
         return;
     } else if (c == '[') {
         JValue *v = new JValue(DataTypes::ARRAY);
-        v->arr = new JArray;
+        stack.push_back(v);
         status = START_ARRAY;
         return;
     } else {
@@ -138,6 +139,7 @@ void JParser::nextItemState(int c)
         if (c != '"')
             throw std::exception();
         stack.push_back(new JValue(DataTypes::STRING));
+        status = READING_STRING;
         break;
     case DataTypes::ARRAY:
     {
@@ -145,13 +147,13 @@ void JParser::nextItemState(int c)
         switch (array->arr->type) {
         case DataTypes::ARRAY:
             createObject(c, '[', DataTypes::ARRAY, START_ARRAY);
-            break;
+            return;
         case DataTypes::OBJECT:
             createObject(c, '{', DataTypes::OBJECT, START_OBJECT);
-            break;
+            return;
         case DataTypes::STRING:
             createObject(c, '"', DataTypes::STRING, READING_STRING);
-            break;
+            return;
         case DataTypes::FLOAT:
         {
             if (!isdigit(c) && c != '-')
@@ -159,9 +161,11 @@ void JParser::nextItemState(int c)
             JValue *add = new JValue(DataTypes::FLOAT);
             add->str += c;
             stack.push_back(add);
+            status = READING_NUMBER;
+            return;
         }
         default:
-            break;
+            throw std::exception();
         }
 
     }
@@ -283,10 +287,10 @@ void JParser::endArrayState(int c)
         switch (c) {
         case ',':
             status = NEXT_ITEM;
-            break;
+            return;
         case '}':
             status = END_OBJECT;
-            break;
+            return;
         default:
             throw std::exception();
         }
@@ -409,20 +413,21 @@ void JParser::pairDelimState(int c)
     case '[':
         stack.push_back(new JValue(DataTypes::ARRAY));
         status = START_ARRAY;
-        break;
+        return;
     case '{':
         stack.push_back(new JValue(DataTypes::OBJECT));
         status = START_OBJECT;
-        break;
+        return;
     case '"':
         stack.push_back(new JValue(DataTypes::STRING));
         status = READING_STRING;
-        break;
+        return;
     default:
         if (isdigit(c) || c == '-') {
             JValue *val = new JValue(DataTypes::FLOAT);
             val->str += c;
             stack.push_back(val);
+            status = READING_NUMBER;
         }
     }
 }
@@ -439,6 +444,7 @@ void JParser::readindNumberState(int c)
     }
     if (c == ',' || c == ']' || c == '}') {
         status = NUMBER_READ;
+        numberReadState(c);
 
     }
 
@@ -468,6 +474,17 @@ void JParser::numberReadState(int c)
         }
 
         parent->arr->array.push_back(s);
+        switch (c) {
+        case ']':
+            status = END_ARRAY;
+            return;
+        case ',':
+            status = NEXT_ITEM;
+            return;
+        default:
+            throw std::exception();
+        }
+
         return;
     case DataTypes::STRING:
     {
@@ -482,6 +499,18 @@ void JParser::numberReadState(int c)
         }
         parent->obj->objDef[key->str] = s;
         delete key;
+        switch (c) {
+        case '}':
+            status = END_OBJECT;
+            return;
+        case ',':
+            status = NEXT_ITEM;
+            return;
+        default:
+            throw std::exception();
+
+        }
+
         return;
     }
     default:
@@ -536,7 +565,6 @@ void JParser::addChar(int c)
     case NEXT_ITEM:
         nextItemState(c);
         break;
-        //case START_STRING:
     case READING_STRING:
         readingStringState(c);
         break;
